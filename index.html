@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUDIC STYLE | The T-Shirt Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg: #ffffff;
+            --text: #111111;
+            --gray: #f4f4f4;
+            --red: #D32F2F;
+            --font: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font); 
+            background: var(--bg); 
+            color: var(--text);
+            overflow-x: hidden; /* Prevent scroll when cart opens */
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* HEADER */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%; position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid #eee;
+        }
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; }
+        
+        .cart-icon { 
+            font-size: 24px; cursor: pointer; position: relative; 
+            transition: transform 0.2s;
+        }
+        .cart-count {
+            position: absolute; top: -5px; right: -5px;
+            background: black; color: white; font-size: 10px; font-weight: bold;
+            width: 18px; height: 18px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* CART DRAWER (SIDEBAR) */
+        .cart-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 998;
+            opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .cart-overlay.open { opacity: 1; visibility: visible; }
+
+        .cart-drawer {
+            position: fixed; top: 0; right: -400px; width: 400px; max-width: 100%;
+            height: 100%; background: white; z-index: 999;
+            padding: 20px; box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth slide */
+            display: flex; flex-direction: column;
+        }
+        .cart-drawer.open { right: 0; }
+
+        .cart-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .close-cart { font-size: 24px; cursor: pointer; }
+        
+        .cart-items { flex-grow: 1; overflow-y: auto; }
+        .cart-item { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #f9f9f9; padding-bottom: 10px; animation: fadeInUp 0.3s ease; }
+        .cart-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
+        .cart-item-details { flex-grow: 1; font-size: 14px; }
+        .remove-btn { color: var(--red); font-size: 12px; cursor: pointer; margin-top: 5px; display: inline-block; }
+
+        .cart-footer { margin-top: auto; border-top: 1px solid #eee; padding-top: 20px; }
+        .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; margin-bottom: 15px; }
+        .checkout-btn {
+            width: 100%; padding: 15px; background: #25D366; /* WhatsApp Green */
+            color: white; border: none; font-weight: 700; cursor: pointer;
+            border-radius: 8px; text-transform: uppercase; font-size: 14px;
+        }
+
+        /* HERO */
+        .hero {
+            background: var(--gray); height: 400px; margin: 20px 2%; border-radius: 12px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .hero h1 { font-size: 42px; font-weight: 900; margin-bottom: 10px; }
+        .hero-btn { padding: 12px 30px; background: black; color: white; text-decoration: none; border-radius: 30px; font-weight: 600; }
+
+        /* GRID */
+        .filters { display: flex; justify-content: center; gap: 15px; padding: 30px; flex-wrap: wrap; }
+        .filter-btn { border: 1px solid #ddd; background: white; padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .filter-btn.active, .filter-btn:hover { background: black; color: white; border-color: black; }
+
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px; padding: 0 5% 80px 5%; max-width: 1400px; margin: 0 auto;
+        }
+
+        .product-card { 
+            animation: fadeInUp 0.6s ease backwards; /* Entry Animation */
+            background: white;
+        }
+        /* Stagger animations */
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .image-wrapper { 
+            background: #f8f8f8; border-radius: 8px; overflow: hidden; 
+            position: relative; padding-top: 100%; margin-bottom: 15px; 
+        }
+        .product-image { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; transition: transform 0.5s; 
+        }
+        .product-card:hover .product-image { transform: scale(1.05); }
+
+        .details h3 { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+        .price { font-weight: 600; font-size: 15px; }
+        .old-price { text-decoration: line-through; color: #999; margin-right: 8px; font-size: 13px; }
+
+        /* Sizes & Add Button */
+        .size-selector { display: flex; gap: 5px; margin: 10px 0; }
+        .size-btn { 
+            width: 30px; height: 30px; border: 1px solid #ddd; background: white; 
+            font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; 
+        }
+        .size-btn.selected { background: black; color: white; border-color: black; }
+
+        .add-btn {
+            width: 100%; padding: 12px; background: black; color: white; 
+            border: none; font-weight: 600; cursor: pointer; margin-top: 5px;
+            transition: 0.2s;
+        }
+        .add-btn:hover { background: #333; }
+        .add-btn:active { transform: scale(0.98); }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; padding: 12px 24px; border-radius: 30px;
+            font-size: 14px; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 2000;
+        }
+        .toast.show { opacity: 1; visibility: visible; bottom: 40px; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 10px 80px 10px; }
+            .hero h1 { font-size: 32px; }
+            .cart-drawer { width: 85%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Added to Cart!</div>
+
+    <div class="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-header">
+            <h2>Your Bag</h2>
+            <div class="close-cart" onclick="toggleCart()">&times;</div>
+        </div>
+        <div class="cart-items" id="cartItemsContainer">
+            <p style="text-align:center; color:#999; margin-top:50px;">Your cart is empty.</p>
+        </div>
+        <div class="cart-footer">
+            <div class="total-row">
+                <span>Total</span>
+                <span id="cartTotal">₹0</span>
+            </div>
+            <button class="checkout-btn" onclick="checkoutWhatsApp()">
+                Checkout on WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">LUDIC TEES</div>
+        <div class="cart-icon" onclick="toggleCart()">
+            🛍️ <span class="cart-count" id="cartCount">0</span>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>Wear The Vibe.</h1>
+        <p>Premium Cotton. Oversized Fits. Limited Drops.</p>
+        <br>
+        <a href="#shop" class="hero-btn">Shop Now</a>
+    </section>
+
+    <section class="filters" id="shop">
+        <button class="filter-btn active" onclick="filterProducts('all')">All Drops</button>
+        <button class="filter-btn" onclick="filterProducts('Plain')">Basics</button>
+        <button class="filter-btn" onclick="filterProducts('Printed')">Graphic</button>
+        <button class="filter-btn" onclick="filterProducts('Oversized')">Oversized</button>
+    </section>
+
+    <main class="grid-container" id="product-grid">
+        </main>
+
+    <script>
+        /* ----------------------------------------------------
+           ★ ADMIN AREA: EDIT YOUR SETTINGS HERE ★ 
+           ---------------------------------------------------- */
+        
+        const adminPhone = "91999999999999999"; // YOUR WhatsApp Number (No + sign)
+        
+        const products = [
+            {
+                id: 1,
+                name: "Essential White Tee",
+                category: "Plain",
+                price: 499,
+                oldPrice: 999,
+                image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 2,
+                name: "Midnight Oversized",
+                category: "Oversized",
+                price: 799,
+                oldPrice: 1299,
+                image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 3,
+                name: "Urban Graphic Print",
+                category: "Printed",
+                price: 649,
+                oldPrice: 899,
+                image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 4,
+                name: "Navy Blue Slim",
+                category: "Plain",
+                price: 599,
+                oldPrice: 999,
+                image: "https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 5,
+                name: "Beige Streetwear",
+                category: "Oversized",
+                price: 899,
+                oldPrice: 1499,
+                image: "https://th.bing.com/th/id/OIP.o2MHjpBzcv0lMYYfYFi95gHaLH?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"
+            },
+            {
+                id: 6,
+                name: "Olive Green",
+                category: "Plain",
+                price: 499,
+                oldPrice: 799,
+                image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 6,
+                name: "Olive Green",
+                category: "Plain",
+                price: 499,
+                oldPrice: 799,
+                image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=500&q=80"
+            }
+        ];
+
+        /* ----------------------------------------------------
+           ★ SYSTEM LOGIC (CART & WHATSAPP) ★ 
+           ---------------------------------------------------- */
+        
+        let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+        const grid = document.getElementById('product-grid');
+        const cartDrawer = document.getElementById('cartDrawer');
+        const cartOverlay = document.querySelector('.cart-overlay');
+        const cartCount = document.getElementById('cartCount');
+
+        // 1. Render Products
+        function renderProducts(items) {
+            grid.innerHTML = "";
+            items.forEach(product => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="image-wrapper">
+                            <img src="${product.image}" alt="${product.name}" class="product-image">
+                        </div>
+                        <div class="details">
+                            <h3>${product.name}</h3>
+                            <div>
+                                <span class="old-price">₹${product.oldPrice}</span>
+                                <span class="price">₹${product.price}</span>
+                            </div>
+                            
+                            <div class="size-selector" id="size-${product.id}">
+                                <div class="size-btn" onclick="selectSize(this)">S</div>
+                                <div class="size-btn selected" onclick="selectSize(this)">M</div>
+                                <div class="size-btn" onclick="selectSize(this)">L</div>
+                                <div class="size-btn" onclick="selectSize(this)">XL</div>
+                            </div>
+
+                            <button class="add-btn" onclick="addToCart(${product.id})">ADD TO BAG</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 2. Select Size Logic
+        function selectSize(btn) {
+            let parent = btn.parentElement;
+            let children = parent.children;
+            for(let i=0; i<children.length; i++) children[i].classList.remove('selected');
+            btn.classList.add('selected');
+        }
+
+        // 3. Add to Cart
+        function addToCart(id) {
+            let product = products.find(p => p.id === id);
+            
+            // Find selected size
+            let sizeContainer = document.getElementById(`size-${id}`);
+            let selectedSize = sizeContainer.querySelector('.selected').innerText;
+
+            // Add to Cart Array
+            cart.push({ ...product, size: selectedSize, cartId: Date.now() });
+            saveCart();
+            updateCartUI();
+            openCart(); // Auto open cart
+            showToast();
+        }
+
+        // 4. Remove from Cart
+        function removeFromCart(cartId) {
+            cart = cart.filter(item => item.cartId !== cartId);
+            saveCart();
+            updateCartUI();
+        }
+
+        // 5. Update Cart UI (Drawer)
+        function updateCartUI() {
+            const container = document.getElementById('cartItemsContainer');
+            const totalEl = document.getElementById('cartTotal');
+            
+            // Update Badge
+            cartCount.innerText = cart.length;
+            // Pulse Animation on Badge
+            cartCount.style.animation = 'none';
+            cartCount.offsetHeight; /* trigger reflow */
+            cartCount.style.animation = 'pulse 0.3s';
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999; margin-top:50px;">Your bag is empty.</p>';
+                totalEl.innerText = "₹0";
+                return;
+            }
+
+            let html = "";
+            let total = 0;
+
+            cart.forEach(item => {
+                total += item.price;
+                html += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="">
+                        <div class="cart-item-details">
+                            <strong>${item.name}</strong><br>
+                            Size: ${item.size}<br>
+                            ₹${item.price}
+                            <div class="remove-btn" onclick="removeFromCart(${item.cartId})">Remove</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            totalEl.innerText = "₹" + total;
+        }
+
+        // 6. Checkout on WhatsApp
+        function checkoutWhatsApp() {
+            if(cart.length === 0) return alert("Your cart is empty!");
+
+            let message = "👋 Hi! I would like to place an order:\n\n";
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                message += `${index + 1}. ${item.name} (Size: ${item.size}) - ₹${item.price}\n`;
+                total += item.price;
+            });
+
+            message += `\n💰 *Total Bill: ₹${total}*`;
+            message += `\n\nPlease confirm my order!`;
+
+            let url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        // 7. Utility Functions
+        function saveCart() { localStorage.setItem('myCart', JSON.stringify(cart)); }
+        
+        function toggleCart() {
+            cartDrawer.classList.toggle('open');
+            cartOverlay.classList.toggle('open');
+        }
+        function openCart() {
+            cartDrawer.classList.add('open');
+            cartOverlay.classList.add('open');
+        }
+
+        function showToast() {
+            let t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function filterProducts(cat) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if(cat === 'all') renderProducts(products);
+            else renderProducts(products.filter(p => p.category === cat));
+        }
+
+        // Init
+        renderProducts(products);
+        updateCartUI();
+
+    </script>
+</body>
+</html>
